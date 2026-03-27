@@ -21,5 +21,43 @@ public class ServiceRoutes {
                 .build();
     }
 
+    @Bean
+    public RouteLocator policyMicroServiceManualRouting(RouteLocatorBuilder builder) {
+        return builder.routes()
+
+                .route("policy-service-user", r -> r
+                        .path("/api/policies/**")
+                        .filters(f -> f.filter(jwtFilter))
+                        .uri("lb://POLICY-SERVICE"))
+
+                .route("admin-service", r -> r
+                        .path("/api/admin/**")
+                        .filters(f -> f.filter(jwtFilter))
+                        .uri("lb://ADMIN-SERVICE"))
+
+                .build();
+    }
+
+
+    @Bean
+    public RouteLocator claimsMicroServiceManualRouting(RouteLocatorBuilder builder) {
+        return builder.routes()
+                .route("claims-service", r -> r
+                        .path("/api/claims/**", "/api/admin/claims/**", "/api/documents/**")
+                        .filters(f -> f.filter(jwtFilter))
+                        .uri("lb://CLAIMS-SERVICE"))
+                .build();
+    }
+
+    @Bean
+    public RouteLocator adminMicroServiceManualRouting(RouteLocatorBuilder builder) {
+        return builder.routes()
+                .route("admin-service", r -> r
+                .path("/api/admin/**")
+                .filters(f -> f.filter(jwtFilter))
+                .uri("lb://ADMIN-SERVICE"))
+                .build();
+    }
+
 
 }

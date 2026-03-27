@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 
+
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter implements GatewayFilter {
@@ -23,7 +24,7 @@ public class JwtAuthenticationFilter implements GatewayFilter {
 
         String path = exchange.getRequest().getURI().getPath();
 
-        if (path.contains("/api/auth")) {
+        if (path.startsWith("/api/auth")) {
             return chain.filter(exchange);
         }
 
@@ -38,7 +39,7 @@ public class JwtAuthenticationFilter implements GatewayFilter {
         String token = authHeader.substring(7);
 
         if (!jwtUtil.validateToken(token)) {
-            return onError(exchange, "Invalid Token");
+            return onError(exchange, "Invalid or Expired Token");
         }
 
         return chain.filter(exchange);

@@ -3,7 +3,6 @@ package com.smartsure.api_gateway.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +18,6 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
 
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
@@ -29,11 +26,38 @@ public class JwtUtil {
 
     public boolean validateToken(String token) {
         try {
-            getClaims(token);
-            return true;
-        } catch (JwtException e) {
+            Claims claims = getClaims(token);
+
+            return !isTokenExpired(claims);
+
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public boolean validateToken(String token, String expectedEmail) {
+        try {
+            Claims claims = getClaims(token);
+
+            String email = claims.getSubject();
+
+            return email.equals(expectedEmail) && !isTokenExpired(claims);
+
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    public String extractEmail(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    private boolean isTokenExpired(Claims claims) {
+        return claims.getExpiration().before(new Date());
     }
 
     private Claims getClaims(String token) {
