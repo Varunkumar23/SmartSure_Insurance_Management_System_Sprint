@@ -1,21 +1,16 @@
 package com.smartsure.auth_service.controller;
 
 
-import com.smartsure.auth_service.dto.AuthResponse;
-import com.smartsure.auth_service.dto.LoginRequest;
-import com.smartsure.auth_service.dto.RegisterRequest;
-import com.smartsure.auth_service.dto.RegisterResponse;
+import com.smartsure.auth_service.dto.*;
 import com.smartsure.auth_service.payload.ApiResponse;
 import com.smartsure.auth_service.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -38,4 +33,17 @@ public class AuthController {
         ApiResponse<AuthResponse> response = authService.login(request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
+
+    @GetMapping("/user")
+    public UserResponse getUserByEmail(@RequestParam String email) {
+
+        return authService.getUserByEmail(email);
+    }
+
+    @GetMapping("/getAllUsers")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
+        ApiResponse<List<UserResponse>> response = authService.getAllUsers();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 }

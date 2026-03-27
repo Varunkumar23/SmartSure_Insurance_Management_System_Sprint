@@ -1,14 +1,11 @@
 package com.smartsure.auth_service.service;
 
-import com.smartsure.auth_service.dto.RegisterRequest;
-import com.smartsure.auth_service.dto.RegisterResponse;
+import com.smartsure.auth_service.dto.*;
 import com.smartsure.auth_service.entity.SmartUser;
 import com.smartsure.auth_service.enums.Role;
 import com.smartsure.auth_service.exception.InvalidCredentialsException;
 import com.smartsure.auth_service.exception.UserAlreadyExistsException;
 import com.smartsure.auth_service.payload.ApiResponse;
-import com.smartsure.auth_service.dto.AuthResponse;
-import com.smartsure.auth_service.dto.LoginRequest;
 import com.smartsure.auth_service.repository.SmartUserRepository;
 import com.smartsure.auth_service.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +13,14 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.lang.module.ResolutionException;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -80,6 +80,33 @@ public class AuthServiceImpl implements AuthService {
                 .success(true)
                 .message("Login successful")
                 .data(response)
+                .build();
+    }
+
+    public UserResponse getUserByEmail( String email) {
+
+        SmartUser user = repository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return new UserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getRole().name()
+        );
+    }
+
+    @Override
+    public ApiResponse<List<UserResponse>> getAllUsers() {
+
+        List<UserResponse> list = repository.findAll()
+                .stream()
+                .map(policy -> mapper.map(policy, UserResponse.class))
+                .toList();
+
+        return ApiResponse.<List<UserResponse>>builder()
+                .success(true)
+                .message("All Users fetched successfully")
+                .data(list)
                 .build();
     }
 }
