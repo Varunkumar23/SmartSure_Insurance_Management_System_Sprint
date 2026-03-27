@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminClaimController {
 
-    private ClaimService claimService;
+    private final ClaimService claimService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")

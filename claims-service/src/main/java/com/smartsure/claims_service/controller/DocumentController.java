@@ -18,7 +18,7 @@ public class DocumentController {
 
     private final DocumentService documentService;
 
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload", consumes = "multipart/form-data")
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<String>> uploadDocument(
             @RequestParam Long claimId,

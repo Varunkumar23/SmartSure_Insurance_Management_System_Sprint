@@ -24,32 +24,66 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public ApiResponse<String> uploadDocument(Long claimId, MultipartFile file) {
+
+        // 🔹 1. Validate claim
         Claim claim = claimRepository.findById(claimId)
                 .orElseThrow(() -> new ResourceNotFoundException("Claim not found"));
 
-        try {
-            String path = "uploads/" + file.getOriginalFilename();
-            file.transferTo(new File(path));
+        // 🔹 2. Validate file
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("File is empty or missing");
+        }
 
+        try {
+            // 🔹 3. Create uploads directory (absolute path)
+            String uploadDirPath = System.getProperty("user.dir") + File.separator + "uploads";
+            File uploadDir = new File(uploadDirPath);
+
+            if (!uploadDir.exists()) {
+                boolean created = uploadDir.mkdirs();
+                if (!created) {
+                    throw new RuntimeException("Failed to create upload directory");
+                }
+            }
+
+            // 🔹 4. Generate unique filename (prevents overwrite)
+            String originalFileName = file.getOriginalFilename();
+            String safeFileName = originalFileName != null
+                    ? originalFileName.replaceAll("[^a-zA-Z0-9\\.\\-]", "_")
+                    : "file";
+
+            String fileName = System.currentTimeMillis() + "_" + safeFileName;
+
+            // 🔹 5. Full file path
+            String filePath = uploadDir.getAbsolutePath() + File.separator + fileName;
+
+            File destination = new File(filePath);
+
+            // 🔹 6. Save file
+            file.transferTo(destination);
+
+            // 🔹 7. Save metadata in DB
             ClaimDocument doc = ClaimDocument.builder()
                     .claimId(claimId)
-                    .fileName(file.getOriginalFilename())
+                    .fileName(fileName)
                     .fileType(file.getContentType())
-                    .filePath(path)
+                    .filePath(filePath)
                     .status(DocumentStatus.PENDING)
                     .build();
 
             documentRepository.save(doc);
 
-        } catch (Exception e) {
-            throw new RuntimeException("Upload failed");
-        }
+            // 🔹 8. Success response
+            return ApiResponse.<String>builder()
+                    .success(true)
+                    .message("Document uploaded successfully")
+                    .data(fileName)
+                    .build();
 
-        return ApiResponse.<String>builder()
-                .success(true)
-                .message("Document uploaded")
-                .data(null)
-                .build();
+        } catch (Exception e) {
+            e.printStackTrace(); // 🔥 important for debugging
+            throw new RuntimeException("Upload failed: " + e.getMessage());
+        }
     }
 
     @Override
