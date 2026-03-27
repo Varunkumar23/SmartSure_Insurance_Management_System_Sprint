@@ -10,6 +10,7 @@ import com.smartsure.policy_service.entity.UserPolicy;
 import com.smartsure.policy_service.exception.ResourceNotFoundException;
 import com.smartsure.policy_service.feigns.AuthClient;
 import com.smartsure.policy_service.payload.ApiResponse;
+import com.smartsure.policy_service.producer.PolicyEventProducer;
 import com.smartsure.policy_service.repository.PolicyRepository;
 import com.smartsure.policy_service.repository.UserPolicyRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class PolicyServiceImpl implements PolicyService {
     private final PolicyRepository repository;
     private final UserPolicyRepository userPolicyRepository;
     private final AuthClient authClient;
+    private final PolicyEventProducer producer;
 
     private double calculatePremium(int tenure) {
         double base = 1000;
@@ -87,6 +89,7 @@ public class PolicyServiceImpl implements PolicyService {
                 .build();
 
         userPolicyRepository.save(userPolicy);
+        producer.sendPolicyPurchaseEvent(email, policy.getPolicyName());
 
         return ApiResponse.<String>builder()
                 .success(true)
