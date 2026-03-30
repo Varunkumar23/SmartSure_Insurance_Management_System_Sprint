@@ -15,6 +15,8 @@ import com.smartsure.policy_service.repository.PolicyRepository;
 import com.smartsure.policy_service.repository.UserPolicyRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
+    @CacheEvict(value = "allPolicies", allEntries = true)
     public ApiResponse<PolicyResponse> createPolicy(CreatePolicyRequest request) {
         Policy policy = modelMapper.map(request, Policy.class);
         policy.setStatus(Status.CREATED);
@@ -54,7 +57,9 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
+    @Cacheable(value = "policies", key = "#id")
     public ApiResponse<PolicyResponse> getPolicy(Long id) {
+        System.out.println("🔥 Fetching from DB...");
         Policy policy = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
         PolicyResponse response = modelMapper.map(policy, PolicyResponse.class);
@@ -128,7 +133,9 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
+    @CacheEvict(value = {"policies", "allPolicies"}, key = "#id", allEntries = true)
     public ApiResponse<PolicyResponse> updatePolicy(Long id, CreatePolicyRequest request) {
+
 
         Policy policy = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Policy not found"));
@@ -150,6 +157,7 @@ public class PolicyServiceImpl implements PolicyService {
     }
 
     @Override
+    @CacheEvict(value = {"policies", "allPolicies"}, key = "#id", allEntries = true)
     public ApiResponse<String> deletePolicy(Long id) {
 
         Policy policy = repository.findById(id)
@@ -164,8 +172,11 @@ public class PolicyServiceImpl implements PolicyService {
                 .build();
     }
 
+    @Cacheable("allPolicies")
     @Override
     public ApiResponse<List<PolicyResponse>> getAllPolicies() {
+        System.out.println("🔥 Fetching all policies from DB...");
+
 
         List<PolicyResponse> list = repository.findAll()
                 .stream()

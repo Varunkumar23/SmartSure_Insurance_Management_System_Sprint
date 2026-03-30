@@ -1,4 +1,19 @@
 package com.smartsure.admin_service.dto;
 
-public class ClaimResponse {
+
+import lombok.*;
+
+import java.io.Serializable;
+
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ClaimResponse implements Serializable {
+
+    private Long id;
+    private Long policyId;
+    private String description;
+    private String status;
 }

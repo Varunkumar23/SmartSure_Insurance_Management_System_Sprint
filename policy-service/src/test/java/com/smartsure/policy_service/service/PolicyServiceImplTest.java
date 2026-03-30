@@ -30,6 +30,9 @@ class PolicyServiceImplTest {
     private PolicyRepository repository;
 
     @Mock
+    private PolicyEventProducer producer;
+
+    @Mock
     private UserPolicyRepository userPolicyRepository;
 
     @Mock

@@ -30,10 +30,10 @@ public class ServiceRoutes {
                         .filters(f -> f.filter(jwtFilter))
                         .uri("lb://POLICY-SERVICE"))
 
-                .route("admin-service", r -> r
-                        .path("/api/admin/**")
+                .route("policy-service", r -> r
+                        .path("/api/admin/policies/**")
                         .filters(f -> f.filter(jwtFilter))
-                        .uri("lb://ADMIN-SERVICE"))
+                        .uri("lb://POLICY-SERVICE"))
 
                 .build();
     }
@@ -53,7 +53,7 @@ public class ServiceRoutes {
     public RouteLocator adminMicroServiceManualRouting(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route("admin-service", r -> r
-                .path("/api/admin/**")
+                .path("/api/adminserver/**")
                 .filters(f -> f.filter(jwtFilter))
                 .uri("lb://ADMIN-SERVICE"))
                 .build();
